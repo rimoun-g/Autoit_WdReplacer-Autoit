@@ -243,4 +243,4 @@ EndFunc ;===================== End of AddTextFromExcel function ================
 ;~ =========================================== oDelete item in the files list ===========================================
 Func DeletListViewItems($listID)
 	_GUICtrlListView_DeleteAllItems($listID)
-	EndFunc ;===================== End of DeletListViewItems function =========================>
+EndFunc ;===================== End of DeletListViewItems function =========================>
