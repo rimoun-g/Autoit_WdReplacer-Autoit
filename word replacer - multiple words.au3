@@ -188,7 +188,7 @@ EndWith
 EndFunc ;===================== End of AddTextFromExcel function =========================>
 
 
-
+;~ =========================================== open the selected file in the files list ===========================================
  Func openfilefromList($ListID, $ListType = 1)
 	If $ListType = 1 Then
         $Y = _GUICtrlListBox_GetCount ( $ListID )
@@ -210,13 +210,12 @@ EndFunc ;===================== End of AddTextFromExcel function ================
 		Next
 		 EndIf
 	EndIf
+ EndFunc  ;===================== End of openfilefromList function =========================>
 
 
 
- EndFunc
-
-
- Func openfolder($ListID, $listType = 1 )
+;~ =========================================== open the folder of the selected file in the files list ===========================================
+ Func openfolder($ListID, $listType = 1 ) ; not used
 	If $ListType = 1 Then
 	   $Y = _GUICtrlListBox_GetCount ( $ListID )
 	   if $Y < 1 Then
@@ -237,9 +236,11 @@ EndFunc ;===================== End of AddTextFromExcel function ================
 		  Next
 		 EndIf
 	EndIf
+ EndFunc ;===================== End of openfolder function =========================>
 
- EndFunc
 
+
+;~ =========================================== oDelete item in the files list ===========================================
 Func DeletListViewItems($listID)
 	_GUICtrlListView_DeleteAllItems($listID)
-	EndFunc
+	EndFunc ;===================== End of DeletListViewItems function =========================>
