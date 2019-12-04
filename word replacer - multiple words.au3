@@ -49,6 +49,9 @@ $lblAddProfile = GUICtrlCreateLabel("Add profile", 720, 55, 175, 20)
 $txtAddProfile = GUICtrlCreateInput("Write profile name", 790, 50, 120, 20)
 $btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 930, 50, 130, 25)
 
+$lblLoadProfile = GUICtrlCreateLabel("Load saved profile:", 740, 105, 175, 20)
+$cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25)
+
 
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
