@@ -15,7 +15,7 @@ Global $ConfigFile = @ScriptDir&"\AppConfig.ini"
 
 
 ;~ appload section
-;~  MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
+ MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
 
 
 
@@ -62,6 +62,10 @@ $lblLoadProfile = GUICtrlCreateLabel("Load saved profile:", 740, 105, 175, 20)
 $cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25)
 CreateAppconfig($cmbxLoadProfile)
 
+
+;~ delete the selected profile
+$btnDelProfile = GUICtrlCreateButton("Delete Selected Profile", 920, 10, 130, 25)
+
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
 
@@ -105,7 +109,10 @@ While 1
 			DeletListViewItems($lstWords)
 			GUICtrlSetData($btnReplaceWords, "Do (" & _GUICtrlListView_GetItemCount ( $lstWords )& ") replacemnts per file")
 		Case $btnAddProfile
-			AddProfile(GUICtrlRead($txtAddProfile))
+			Local $NameofProfile
+			$NameofProfile = GUICtrlRead($txtAddProfile)
+			if  $NameofProfile <> "" and StringStripWS($NameofProfile,8) <> " " Then AddProfile(GUICtrlRead($txtAddProfile))
+
 		Case $cmbxLoadProfile
 			DeletListViewItems($lstWords)
 			Local $Profile = _GUICtrlComboBox_GetCurSel($cmbxLoadProfile)
@@ -113,6 +120,12 @@ While 1
 			_GUICtrlComboBox_GetLBText($cmbxLoadProfile,$Profile,$profName)
 			LoadProfile($profName)
 			GUICtrlSetData($btnReplaceWords, "Do (" & _GUICtrlListView_GetItemCount ( $lstWords )& ") replacemnts per file")
+		Case $btnDelProfile
+			Local $Profile = _GUICtrlComboBox_GetCurSel($cmbxLoadProfile)
+			Local $profName
+			_GUICtrlComboBox_GetLBText($cmbxLoadProfile,$Profile,$profName)
+			DeleteProfile($profName)
+			CreateAppconfig()
 
 
 
@@ -290,15 +303,18 @@ Else
 	Local $newWordsArr = []
 
 	For $j = 0 To _GUICtrlListView_GetItemCount ( $wordsList ) -1 ;loobs through the list of replacements
-				_ArrayAdd($oldWordsArr, _GUICtrlListView_GetItemText($lstWords,$j))
-				 _ArrayAdd($newWordsArr,_GUICtrlListView_GetItemText($lstWords,$j,1))
+		_ArrayAdd($oldWordsArr, _GUICtrlListView_GetItemText($lstWords,$j))
+		_ArrayAdd($newWordsArr,_GUICtrlListView_GetItemText($lstWords,$j,1))
 	Next
-	IniWriteSection($ConfigFile, $profileName, "oldtext=" & @CRLF & "newtext=")
+
+	IniWriteSection($ConfigFile, $profileName,  "status=" & @CRLF & "oldtext=" & @CRLF & "newtext=")
+	IniWrite($ConfigFile,$profileName,"status", "active")
 	IniWrite($ConfigFile,$profileName,"oldtext", _ArrayToString($oldWordsArr,Default,1))
 	IniWrite($ConfigFile,$profileName,"newtext", _ArrayToString($newWordsArr,Default,1))
 	CreateAppconfig()
 	MsgBox(64,"Done!","your profile has been added")
 EndIf
+
 EndFunc
 
 
@@ -306,9 +322,19 @@ Func CreateAppconfig($combobox = $cmbxLoadProfile)
 	if Not FileExists($ConfigFile) Then
 		FileWriteLine($ConfigFile,"")
 	Else
-	    $sections = _ArrayToString(IniReadSectionNames($ConfigFile),Default,1)
+	    $sections = IniReadSectionNames($ConfigFile)
 		GUICtrlSetData($combobox,"")
-		GUICtrlSetData($combobox, $sections, "")
+		Local $names = ""
+		For $i = 1 To Ubound($sections) - 1
+
+			$status = IniRead($ConfigFile,$sections[$i],"status","")
+
+			if $status = "active" then
+				$names = $names &"|"& $sections[$i]
+			EndIf
+
+		Next
+		GUICtrlSetData($combobox, $names, "")
 
 	EndIf
 EndFunc
@@ -339,4 +365,10 @@ Func LoadProfile($profileName)
 		AddWords($oldword,$newword)
 		Next
 	EndIf
+EndFunc
+
+
+Func DeleteProfile($profileName)
+	IniWrite($ConfigFile,$profileName,"status", "deleted")
+	MsgBox(48,"Done", "The profile named: " &$profileName &" was deleted successfully!" & @CRLF &"if you deleted it by mistake, you can open the " & @CRLF & $ConfigFile &@CRLF & " and change the status to active")
 EndFunc
