@@ -8,7 +8,7 @@
 #include <Word.au3>
 #include <Excel.au3>
 #Include <WinAPIEx.au3>
-MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
+;~ MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
 
 #Region ### START Koda GUI section ### Form=
 $frmMainForm = GUICreate("Replace text in word files", 1100, 600)
@@ -19,18 +19,18 @@ GUICtrlSetLimit ( $lstFiles, 10000000)
 $FileListCon = GUICtrlCreateContextMenu ( $lstFiles )
 
 $FolderPath = GUICtrlCreateInput("", 88, 10, 420, 20)
-$Pathlbl = GUICtrlCreateLabel("Folder Path", 10, 15)
-$countItemslbl = GUICtrlCreateLabel("0 File(s)", 720, 550,100)
-$gettingItemslbl = GUICtrlCreateLabel("......", 720, 570,100)
+$lblPath = GUICtrlCreateLabel("Folder Path", 10, 15)
+$lblCountItems = GUICtrlCreateLabel("0 File(s)", 720, 550,100)
+$lblGettingItems = GUICtrlCreateLabel("......", 720, 570,100)
 $idCheckbox = GUICtrlCreateCheckbox("Include files in Subfolders", 700, 10, 185, 25)
 
-$txtOldText = GUICtrlCreateInput("Old Text", 715, 50, 175, 20)
-$txtNewText = GUICtrlCreateInput("New Text", 900, 50, 175, 20)
+$txtOldText = GUICtrlCreateInput("Old Text", 715, 300, 175, 20)
+$txtNewText = GUICtrlCreateInput("New Text", 900, 300, 175, 20)
 
 $btnReplaceWords = GUICtrlCreateButton("Do (0) Replacements per file", 900, 550, 190, 35)
-$btnAddWords = GUICtrlCreateButton("Add text Manually", 920, 80, 150, 25)
-$btnAddWordsXl = GUICtrlCreateButton("Add text from Excel", 720, 80, 150, 25)
-$lstWords = GUICtrlCreateListview("", 720, 110, 370, 430, BitOR($WS_HSCROLL,$WS_VSCROLL))
+$btnAddWords = GUICtrlCreateButton("Add text Manually", 920, 260, 150, 25)
+$btnAddWordsXl = GUICtrlCreateButton("Add text from Excel", 720, 260, 150, 25)
+$lstWords = GUICtrlCreateListview("", 720, 340, 370, 200, BitOR($WS_HSCROLL,$WS_VSCROLL))
 $lstWordsCon = GUICtrlCreateContextMenu ( $lstWords )
 $Deles = GUICtrlCreateMenuItem("Delete", $lstWordsCon)
 _GUICtrlListView_InsertColumn($lstWords, 0, "(((Replace)))", 182,2)
@@ -42,6 +42,14 @@ $OpenFile = GUICtrlCreateMenuItem("Open File", $FileListCon)
 $Del = GUICtrlCreateMenuItem("Delete", $FileListCon)
 $ClearFileList = GUICtrlCreateMenuItem("Delete All Items", $FileListCon)
 $ClearWordList = GUICtrlCreateMenuItem("Delete All Items", $lstWordsCon)
+
+
+;~ Adding save configuration area
+$lblAddProfile = GUICtrlCreateLabel("Add profile", 720, 55, 175, 20)
+$txtAddProfile = GUICtrlCreateInput("Write profile name", 790, 50, 120, 20)
+$btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 930, 50, 130, 25)
+
+
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
 
@@ -57,7 +65,7 @@ While 1
 			 GetFilesList($G,"*.docx", _IsChecked($idCheckbox))
 		Case $Del
 			_GUICtrlListView_DeleteItemsSelected ($lstFiles)
-			GUICtrlSetData($countItemslbl, _GUICtrlListView_GetItemCount ( $lstFiles )& " File(s)")
+			GUICtrlSetData($lblCountItems, _GUICtrlListView_GetItemCount ( $lstFiles )& " File(s)")
 		Case $btnReplaceWords
 		   ReplaceWords()
 		Case $btnAddWords
@@ -77,7 +85,7 @@ While 1
 ;~ 			openfolder($lstFiles,2)
 		Case $ClearFileList
 			DeletListViewItems($lstFiles)
-			GUICtrlSetData($countItemslbl, "0 File(s)")
+			GUICtrlSetData($lblCountItems, "0 File(s)")
 		Case $ClearWordList
 			DeletListViewItems($lstWords)
 			GUICtrlSetData($btnReplaceWords, "Do (" & _GUICtrlListView_GetItemCount ( $lstWords )& ") replacemnts per file")
@@ -98,7 +106,7 @@ Local $FPath = $Path
 		$recur_val  = $FLTAR_NORECUR
 	EndIf
 	if $FPath <> "" Then
-			GUICtrlSetData($gettingItemslbl,"Getting files....")
+			GUICtrlSetData($lblGettingItems,"Getting files....")
 			GUICtrlSetState($btnSelect, 128)
 			Local $FileList = _FileListToArrayRec ($FPath,$Type,1,$recur_val,Default,$FLTAR_FULLPATH)
 
@@ -109,11 +117,11 @@ Local $FPath = $Path
 			For $i = 1 To $FileList[0]
 				GUICtrlCreateListViewItem($FileList[$i],$lstFiles)
 			Next
-			GUICtrlSetData($gettingItemslbl,"Done Getting files")
-			GUICtrlSetData($countItemslbl, UBound ($FileList) -1& " File(s)")
+			GUICtrlSetData($lblGettingItems,"Done Getting files")
+			GUICtrlSetData($lblCountItems, UBound ($FileList) -1& " File(s)")
 
 		Else
-			GUICtrlSetData($gettingItemslbl,"No files found")
+			GUICtrlSetData($lblGettingItems,"No files found")
 			MsgBox (16,"Error","Cannot find any files")
 
 		EndIf
@@ -146,11 +154,11 @@ if  $countItems > 0 Then
 				$oRangeFound = _Word_DocFindReplace($oDoc,  _GUICtrlListView_GetItemText($lstWords,$j), _GUICtrlListView_GetItemText($lstWords,$j,1))
 			Next
 		_Word_DocClose ($oDoc, $WdSaveChanges) ;closed the word document
-		GUICtrlSetData($gettingItemslbl,"Replacing..." & Int((($i+1)/($countItems))*100) & "%")
+		GUICtrlSetData($lblGettingItems,"Replacing..." & Int((($i+1)/($countItems))*100) & "%")
 	Next
 
 	_Word_Quit($oWord) ; closes the word application
-	GUICtrlSetData($gettingItemslbl,"Done Replacing")
+	GUICtrlSetData($lblGettingItems,"Done Replacing")
 	GUICtrlSetState($btnReplaceWords, 64)
 Else
 	msgbox(16,"Error", "No files to be replaced")
