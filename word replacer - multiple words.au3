@@ -8,7 +8,16 @@
 #include <Word.au3>
 #include <Excel.au3>
 #Include <WinAPIEx.au3>
-;~ MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
+#include <GuiComboBoxEx.au3>
+
+;~ globals declarations
+Global $ConfigFile = @ScriptDir&"\AppConfig.ini"
+
+
+;~ appload section
+;~  MsgBox (48, "Warning", "please save and close your word files to avoid any issues")
+
+
 
 #Region ### START Koda GUI section ### Form=
 $frmMainForm = GUICreate("Replace text in word files", 1100, 600)
@@ -45,16 +54,19 @@ $ClearWordList = GUICtrlCreateMenuItem("Delete All Items", $lstWordsCon)
 
 
 ;~ Adding save configuration area
-$lblAddProfile = GUICtrlCreateLabel("Add profile", 720, 55, 175, 20)
-$txtAddProfile = GUICtrlCreateInput("Write profile name", 790, 50, 120, 20)
-$btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 930, 50, 130, 25)
+$lblAddProfile = GUICtrlCreateLabel("Add profile", 720, 55, 50, 20)
+$txtAddProfile = GUICtrlCreateInput("", 790, 50, 120, 20)
+$btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 920, 50, 130, 25)
 
 $lblLoadProfile = GUICtrlCreateLabel("Load saved profile:", 740, 105, 175, 20)
 $cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25)
-
+CreateAppconfig($cmbxLoadProfile)
 
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
+
+
+
 
 While 1
 	$nMsg = GUIGetMsg()
@@ -92,6 +104,17 @@ While 1
 		Case $ClearWordList
 			DeletListViewItems($lstWords)
 			GUICtrlSetData($btnReplaceWords, "Do (" & _GUICtrlListView_GetItemCount ( $lstWords )& ") replacemnts per file")
+		Case $btnAddProfile
+			AddProfile(GUICtrlRead($txtAddProfile))
+		Case $cmbxLoadProfile
+			DeletListViewItems($lstWords)
+			Local $Profile = _GUICtrlComboBox_GetCurSel($cmbxLoadProfile)
+			Local $profName
+			_GUICtrlComboBox_GetLBText($cmbxLoadProfile,$Profile,$profName)
+			LoadProfile($profName)
+			GUICtrlSetData($btnReplaceWords, "Do (" & _GUICtrlListView_GetItemCount ( $lstWords )& ") replacemnts per file")
+
+
 
 	EndSwitch
 WEnd
@@ -255,3 +278,65 @@ EndFunc ;===================== End of AddTextFromExcel function ================
 Func DeletListViewItems($listID)
 	_GUICtrlListView_DeleteAllItems($listID)
 EndFunc ;===================== End of DeletListViewItems function =========================>
+
+
+
+;~ =========================================== Add profile ===========================================
+Func AddProfile($profileName, $wordsList = $lstWords)
+if Not FileExists($ConfigFile) Then
+	CreateAppconfig()
+Else
+	Local $oldWordsArr = []
+	Local $newWordsArr = []
+
+	For $j = 0 To _GUICtrlListView_GetItemCount ( $wordsList ) -1 ;loobs through the list of replacements
+				_ArrayAdd($oldWordsArr, _GUICtrlListView_GetItemText($lstWords,$j))
+				 _ArrayAdd($newWordsArr,_GUICtrlListView_GetItemText($lstWords,$j,1))
+	Next
+	IniWriteSection($ConfigFile, $profileName, "oldtext=" & @CRLF & "newtext=")
+	IniWrite($ConfigFile,$profileName,"oldtext", _ArrayToString($oldWordsArr,Default,1))
+	IniWrite($ConfigFile,$profileName,"newtext", _ArrayToString($newWordsArr,Default,1))
+	CreateAppconfig()
+	MsgBox(64,"Done!","your profile has been added")
+EndIf
+EndFunc
+
+
+Func CreateAppconfig($combobox = $cmbxLoadProfile)
+	if Not FileExists($ConfigFile) Then
+		FileWriteLine($ConfigFile,"")
+	Else
+	    $sections = _ArrayToString(IniReadSectionNames($ConfigFile),Default,1)
+		GUICtrlSetData($combobox,"")
+		GUICtrlSetData($combobox, $sections, "")
+
+	EndIf
+EndFunc
+
+
+Func LoadProfile($profileName)
+	Local $oldtext = IniRead($ConfigFile,$profileName,"oldtext","")
+	Local $newtext = IniRead($ConfigFile,$profileName,"newtext","")
+	Local $oldword
+	Local $newword
+	if $oldtext <> "" Then
+		$splitold = StringSplit($oldtext,"|")
+		$splitnew = StringSplit($newtext,"|")
+		For $i = 1 To UBound($splitold) - 1
+
+			if $splitold[$i] <> "" Then
+			$oldword = $splitold[$i]
+			Else
+			$oldword = ""
+			EndIf
+
+			if $splitnew[$i] <> "" Then
+			$newword = $splitnew[$i]
+			Else
+			$newword = ""
+			EndIf
+
+		AddWords($oldword,$newword)
+		Next
+	EndIf
+EndFunc
