@@ -59,7 +59,7 @@ $txtAddProfile = GUICtrlCreateInput("", 790, 50, 120, 20)
 $btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 920, 50, 130, 25)
 
 $lblLoadProfile = GUICtrlCreateLabel("Load saved profile:", 740, 105, 175, 20)
-$cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25)
+$cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL, $WS_VSCROLL))
 CreateAppconfig($cmbxLoadProfile)
 
 
