@@ -58,6 +58,7 @@ $lblAddProfile = GUICtrlCreateLabel("Add profile", 720, 55, 50, 20)
 $txtAddProfile = GUICtrlCreateInput("", 790, 50, 120, 20)
 $btnAddProfile = GUICtrlCreateButton("Add Profile to profiles list", 920, 50, 130, 25)
 
+;~ load profile
 $lblLoadProfile = GUICtrlCreateLabel("Load saved profile:", 740, 105, 175, 20)
 $cmbxLoadProfile = GUICtrlCreateCombo("", 850, 100, 210, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL, $WS_VSCROLL))
 CreateAppconfig($cmbxLoadProfile)
@@ -112,7 +113,6 @@ While 1
 			Local $NameofProfile
 			$NameofProfile = GUICtrlRead($txtAddProfile)
 			if  $NameofProfile <> "" and StringStripWS($NameofProfile,8) <> " " Then AddProfile(GUICtrlRead($txtAddProfile))
-
 		Case $cmbxLoadProfile
 			DeletListViewItems($lstWords)
 			Local $Profile = _GUICtrlComboBox_GetCurSel($cmbxLoadProfile)
@@ -229,7 +229,6 @@ With $oWorkbook.ActiveSheet ; process active sheet
 	For $i = 0 To UBound($text) - 1 ; loop through the range array to populate the list with values
 	AddWords($text[$i][0],$text[$i][1])
 	Next
-
 EndWith
 
 EndFunc ;===================== End of AddTextFromExcel function =========================>
@@ -287,7 +286,7 @@ EndFunc ;===================== End of AddTextFromExcel function ================
 
 
 
-;~ =========================================== oDelete item in the files list ===========================================
+;~ =========================================== oDelete item in the files list ===================
 Func DeletListViewItems($listID)
 	_GUICtrlListView_DeleteAllItems($listID)
 EndFunc ;===================== End of DeletListViewItems function =========================>
@@ -296,32 +295,36 @@ EndFunc ;===================== End of DeletListViewItems function ==============
 
 ;~ =========================================== Add profile ===========================================
 Func AddProfile($profileName, $wordsList = $lstWords)
-if Not FileExists($ConfigFile) Then
+if Not FileExists($ConfigFile) Then ; if the file does not exist , it ll call the app config creation function from below
 	CreateAppconfig()
 Else
+;~ 	if the file exists
 	Local $oldWordsArr = []
 	Local $newWordsArr = []
-
+; it ll store the list of words , each column in a key (oldtext & newtext)
 	For $j = 0 To _GUICtrlListView_GetItemCount ( $wordsList ) -1 ;loobs through the list of replacements
 		_ArrayAdd($oldWordsArr, _GUICtrlListView_GetItemText($lstWords,$j))
 		_ArrayAdd($newWordsArr,_GUICtrlListView_GetItemText($lstWords,$j,1))
 	Next
-
-	IniWriteSection($ConfigFile, $profileName,  "status=" & @CRLF & "oldtext=" & @CRLF & "newtext=")
-	IniWrite($ConfigFile,$profileName,"status", "active")
-	IniWrite($ConfigFile,$profileName,"oldtext", _ArrayToString($oldWordsArr,Default,1))
-	IniWrite($ConfigFile,$profileName,"newtext", _ArrayToString($newWordsArr,Default,1))
-	CreateAppconfig()
+;~ here it creates the secotion [Profile] and the keys then the keys are filled with the data grapped from the list of words
+	IniWriteSection($ConfigFile, $profileName,  "status=" & @CRLF & "oldtext=" & @CRLF & "newtext=") ; creating sections and keys
+	IniWrite($ConfigFile,$profileName,"status", "active") ; setting the status value to active
+	IniWrite($ConfigFile,$profileName,"oldtext", _ArrayToString($oldWordsArr,Default,1)) ; sotring old words collected
+	IniWrite($ConfigFile,$profileName,"newtext", _ArrayToString($newWordsArr,Default,1)); sotring new words collected
+	CreateAppconfig() ; update the profiles list
 	MsgBox(64,"Done!","your profile has been added")
 EndIf
 
 EndFunc
 
 
+;~ ===================================== Initiate app config============================================
 Func CreateAppconfig($combobox = $cmbxLoadProfile)
 	if Not FileExists($ConfigFile) Then
+		; create file if the config file does not exist
 		FileWriteLine($ConfigFile,"")
 	Else
+;~ 		if the config file exists collect sections [Profiles] in an array , but only the active section, the ones marked deleted will not be collected
 	    $sections = IniReadSectionNames($ConfigFile)
 		GUICtrlSetData($combobox,"")
 		Local $names = ""
@@ -334,17 +337,20 @@ Func CreateAppconfig($combobox = $cmbxLoadProfile)
 			EndIf
 
 		Next
+;~ 		then updating the combobox withe the valid data
 		GUICtrlSetData($combobox, $names, "")
 
 	EndIf
 EndFunc
 
-
+;~ ===================================== Load profiles from config ============================================
 Func LoadProfile($profileName)
+;~ 	loading the profil data from the config file
 	Local $oldtext = IniRead($ConfigFile,$profileName,"oldtext","")
 	Local $newtext = IniRead($ConfigFile,$profileName,"newtext","")
 	Local $oldword
 	Local $newword
+;~ 	we split the stored data in the config file and update the word list
 	if $oldtext <> "" Then
 		$splitold = StringSplit($oldtext,"|")
 		$splitnew = StringSplit($newtext,"|")
@@ -367,7 +373,7 @@ Func LoadProfile($profileName)
 	EndIf
 EndFunc
 
-
+;~ ===================================== Delete profile from config ============================================
 Func DeleteProfile($profileName)
 	IniWrite($ConfigFile,$profileName,"status", "deleted")
 	MsgBox(48,"Done", "The profile named: " &$profileName &" was deleted successfully!" & @CRLF &"if you deleted it by mistake, you can open the " & @CRLF & $ConfigFile &@CRLF & " and change the status to active")
