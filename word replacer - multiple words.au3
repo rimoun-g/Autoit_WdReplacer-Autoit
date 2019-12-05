@@ -82,7 +82,7 @@ While 1
 			MsgBox(48,"Warning","Please test the replacement on one file before doing replacements on a big scale.")
 			$G = FileSelectFolder ("Choose word folder", @ScriptDir)
 			 GUICtrlSetData($FolderPath,$G)
-			 GetFilesList($G,"*.docx", _IsChecked($idCheckbox))
+			 GetFilesList($G,"*.docx;*.doc", _IsChecked($idCheckbox)) ;add extensions as needed separated by semicolon
 		Case $Del
 			_GUICtrlListView_DeleteItemsSelected ($lstFiles)
 			GUICtrlSetData($lblCountItems, _GUICtrlListView_GetItemCount ( $lstFiles )& " File(s)")
