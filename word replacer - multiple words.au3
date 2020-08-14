@@ -67,6 +67,10 @@ CreateAppconfig($cmbxLoadProfile)
 ;~ delete the selected profile
 $btnDelProfile = GUICtrlCreateButton("Delete Selected Profile", 920, 10, 130, 25)
 
+;~ Replace words in headers and footers
+
+$chkbxHeaderFooterReplace = GUICtrlCreateCheckbox("Replace words in headers and footers", 720, 150, 200, 25)
+
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
 
@@ -190,7 +194,17 @@ if  $countItems > 0 Then
 		$oDoc = _Word_DocOpen($oWord, $File, Default,Default, False)
 		If @error Then  MsgBox(16+48, "Error","Error opening the document." & @CRLF & "@error = " & @error & ", @extended = " & @extended)
 			For $j = 0 To _GUICtrlListView_GetItemCount ( $lstWords ) -1 ;loobs through the list of replacements to perform all of them in each document
-				$oRangeFound = _Word_DocFindReplace($oDoc,  _GUICtrlListView_GetItemText($lstWords,$j), _GUICtrlListView_GetItemText($lstWords,$j,1))
+			   $oRangeFound = _Word_DocFindReplace($oDoc,  _GUICtrlListView_GetItemText($lstWords,$j), _GUICtrlListView_GetItemText($lstWords,$j,1))
+
+			   if _IsChecked($chkbxHeaderFooterReplace) Then
+
+				  For $oStoryRange In $oDoc.StoryRanges
+					 _Word_DocFindReplace($oDoc, _GUICtrlListView_GetItemText($lstWords,$j), _GUICtrlListView_GetItemText($lstWords,$j,1), Default, $oStoryRange)
+				  Next
+
+			   EndIf
+
+
 			Next
 		_Word_DocClose ($oDoc, $WdSaveChanges) ;closed the word document
 		GUICtrlSetData($lblGettingItems,"Replacing..." & Int((($i+1)/($countItems))*100) & "%")
