@@ -231,19 +231,25 @@ EndFunc ;============ End of AddWords function
 ;~ ============================ get list of replacements from excel file and add them to repalcements list instead of enterin them one by one =======================
 Func AddTextFromExcel($ExcelFile)
 	 $oExcel = ObjCreate("Excel.Application") ; creates xl application
-	  $oWorkbook = _Excel_BookOpen($oExcel,$ExcelFile,False,False) ; opens the xl file
+	  $oWorkbook = _Excel_BookOpen($oExcel,$ExcelFile,True,False) ; opens the xl file
 Local Const $xlUp = -4162
 With $oWorkbook.ActiveSheet ; process active sheet
 	$oRangeLast = .UsedRange.SpecialCells($xlCellTypeLastCell) ; get a Range that contains the last used cells
 	$iRowCount = .Range(.Cells(1, 1), .Cells($oRangeLast.Row, $oRangeLast.Column)).Rows.Count ; get the the row count for the range starting in row/column 1 and ending at the last used row/column
 	$iLastCell = .Cells($iRowCount + 1, "A").End($xlUp).Row ; start in the row following the last used row and move up to the first used cell in column "B" and grab this row number
 	Global $text = _Excel_RangeRead($oWorkbook, Default, "A2:B" & $iLastCell) ; gets the used range and store it as an array
-	_Excel_Close($oWorkbook,Default,Default) ; close the xl file
+
 
 	For $i = 0 To UBound($text) - 1 ; loop through the range array to populate the list with values
 	AddWords($text[$i][0],$text[$i][1])
-	Next
+ Next
+
+ ;_Excel_BookClose($oWorkbook, False); close the xl file
+ _Excel_Close($oExcel,False,True) ; close the excel applciation
+
 EndWith
+
+
 
 EndFunc ;===================== End of AddTextFromExcel function =========================>
 
